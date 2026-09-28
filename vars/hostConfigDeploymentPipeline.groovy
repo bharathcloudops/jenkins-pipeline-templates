@@ -8,12 +8,13 @@ def call(Map configuration = [:]) {
     //==========================================================================
 
     def toolType = configuration.toolType ?: ''
+    def markerPrefix = toolType.replace('-', '_')
     def supportedActions = configuration.supportedActions ?: ['validate', 'dry-run', 'deploy']
-    def mutatingActions = configuration.mutatingActions ?: ['deploy', 'backup', 'restore', 'rollback', 'test-alert', 'test-restore']
+    def mutatingActions = configuration.mutatingActions ?: ['deploy', 'backup', 'restore', 'rollback', 'recover', 'test-alert', 'test-restore']
     def runtimeConfiguration = [:]
 
-    if (!(toolType in ['backstage', 'jenkins', 'monitoring'])) {
-        error('toolType must be backstage, jenkins, or monitoring')
+    if (!(toolType in ['backstage', 'github-runner', 'jenkins', 'monitoring'])) {
+        error('toolType must be backstage, github-runner, jenkins, or monitoring')
     }
 
     //==========================================================================
@@ -37,7 +38,7 @@ def call(Map configuration = [:]) {
             prependAction: false,
             requiredOutputMarker: selectedAction == 'validate' && configuration.validationMarker
                 ? configuration.validationMarker
-                : "${toolType}_${selectedAction.replace('-', '_')}=ready",
+                : "${markerPrefix}_${selectedAction.replace('-', '_')}=ready",
             targetsJson: targetsForAction(selectedAction)
         ]
 
@@ -93,13 +94,16 @@ def call(Map configuration = [:]) {
                             jenkins: 'JENKINS_RESTORE_ARCHIVE',
                             monitoring: 'MONITORING_RESTORE_ARCHIVE'
                         ][toolType]
-
-                        withEnv([
+                        def prepareEnvironment = [
                             "GITHUB_OUTPUT=${outputFile}",
                             "HOST_CONFIG_ACTION=${params.ACTION}",
-                            "HOST_CONFIG_TOOL_TYPE=${toolType}",
-                            "${restoreVariable}=${params.RESTORE_ARCHIVE ?: ''}"
-                        ]) {
+                            "HOST_CONFIG_TOOL_TYPE=${toolType}"
+                        ]
+                        if (restoreVariable) {
+                            prepareEnvironment << "${restoreVariable}=${params.RESTORE_ARCHIVE ?: ''}"
+                        }
+
+                        withEnv(prepareEnvironment) {
                             sh '''
                                 set -eu
                                 : > "$GITHUB_OUTPUT"
@@ -214,7 +218,7 @@ def call(Map configuration = [:]) {
 
             stage('Verify Public Route') {
                 when {
-                    expression { params.ACTION == 'deploy' && toolType != 'jenkins' }
+                    expression { params.ACTION == 'deploy' && !(toolType in ['github-runner', 'jenkins']) }
                 }
                 steps {
                     sh "bash scripts/verify-public-ingress.sh '${runtimeConfiguration.verificationUrl}'"
