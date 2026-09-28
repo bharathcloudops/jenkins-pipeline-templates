@@ -6,7 +6,7 @@
 # WORKFLOW IDENTITY
 #==============================================================================
 
-name: Validate Jenkins pipeline templates
+name: 01 - Validate Jenkins pipeline templates
 
 #==============================================================================
 # WORKFLOW TRIGGERS
@@ -44,14 +44,14 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout repository
+      - name: 01 - Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - name: Validate Bash
+      - name: 02 - Validate Bash
         run: shellcheck resources/scripts/*.sh
 
-      - name: Validate library contracts
+      - name: 03 - Validate library contracts
         run: bash resources/scripts/validate-library.sh
 
-      - name: Compile Groovy syntax
+      - name: 04 - Compile Groovy syntax
         run: docker run --rm --volume "$PWD:/workspace" --workdir /workspace groovy:4.0.27-jdk21 groovyc -d /tmp/classes vars/*.groovy
