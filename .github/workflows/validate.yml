@@ -40,6 +40,7 @@ concurrency:
 
 jobs:
   validate:
+    name: 01 - Validate Jenkins Pipeline Templates
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
