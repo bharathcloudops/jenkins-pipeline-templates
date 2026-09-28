@@ -35,6 +35,11 @@ def call(Map configuration = [:]) {
                 description: 'Terraform lifecycle action'
             )
             password(
+                name: 'GITHUB_RUNNER_TOKEN',
+                defaultValue: '',
+                description: 'One-time organization runner token bootstrap; leave empty after it is persisted in OCI Vault'
+            )
+            password(
                 name: 'WORDPRESS_REGISTRY_TOKEN',
                 defaultValue: '',
                 description: 'One-time GHCR token bootstrap; leave empty after it is persisted in OCI Vault'
