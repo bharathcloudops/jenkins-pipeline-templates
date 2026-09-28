@@ -13,12 +13,17 @@ umask 077
 #==============================================================================
 
 : "${TERRAFORM_CREDENTIAL_FILE:?TERRAFORM_CREDENTIAL_FILE is required}"
+github_runner_token="${GITHUB_RUNNER_TOKEN:-}"
 wordpress_registry_token="${WORDPRESS_REGISTRY_TOKEN:-}"
 export CLINIROVA_SECRET_BUNDLE="${CLINIROVA_SECRET_BUNDLE:-}"
 
-if [[ -z "$wordpress_registry_token" && -z "$CLINIROVA_SECRET_BUNDLE" ]]; then
+if [[ -z "$github_runner_token" && -z "$wordpress_registry_token" && -z "$CLINIROVA_SECRET_BUNDLE" ]]; then
   printf 'terraform_credential_bootstrap=skipped\n'
   exit 0
+fi
+if [[ -n "$github_runner_token" ]] && [[ ${#github_runner_token} -lt 20 || "$github_runner_token" == *$'\n'* ]]; then
+  printf 'GITHUB_RUNNER_TOKEN must be a single-line token of at least 20 characters.\n' >&2
+  exit 1
 fi
 if [[ -n "$wordpress_registry_token" ]] && [[ ${#wordpress_registry_token} -lt 20 || "$wordpress_registry_token" == *$'\n'* ]]; then
   printf 'WORDPRESS_REGISTRY_TOKEN must be a single-line token of at least 20 characters.\n' >&2
@@ -45,8 +50,10 @@ fi
 
 temporary_file=$(mktemp "${TERRAFORM_CREDENTIAL_FILE}.XXXXXX")
 trap 'rm -f "$temporary_file"' EXIT
+export GITHUB_RUNNER_TOKEN="$github_runner_token"
 export WORDPRESS_REGISTRY_TOKEN="$wordpress_registry_token"
 if ! jq '
+  if env.GITHUB_RUNNER_TOKEN != "" then .github_runner_token = env.GITHUB_RUNNER_TOKEN else . end |
   if env.WORDPRESS_REGISTRY_TOKEN != "" then .wordpress_registry_token = env.WORDPRESS_REGISTRY_TOKEN else . end |
   if env.CLINIROVA_SECRET_BUNDLE != "" then
     .clinirova_secret_bundle = (((.clinirova_secret_bundle // "{}" | fromjson) + (env.CLINIROVA_SECRET_BUNDLE | fromjson)) | tojson)

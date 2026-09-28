@@ -39,6 +39,7 @@ if [[ "$*" == *' plan '* ]]; then
   printf '%s' "$TF_VAR_oci_fingerprint" > "$OCI_TERRAFORM_TEST_FINGERPRINT"
   printf '%s' "$TF_VAR_oci_private_key" > "$OCI_TERRAFORM_TEST_PRIVATE_KEY"
   printf '%s' "$TF_VAR_backstage_secret_bundle" > "$OCI_TERRAFORM_TEST_BACKSTAGE_SECRET"
+  printf '%s' "$TF_VAR_github_runner_token" > "$OCI_TERRAFORM_TEST_GITHUB_RUNNER_TOKEN"
   printf '%s' "$TF_VAR_wordpress_registry_token" > "$OCI_TERRAFORM_TEST_REGISTRY_TOKEN"
   printf '%s' "$TF_VAR_clinirova_secret_bundle" > "$OCI_TERRAFORM_TEST_CLINIROVA_SECRET"
   printf 'saved-plan\n' > "$TERRAFORM_DIRECTORY/$TERRAFORM_PLAN_FILE"
@@ -56,6 +57,7 @@ export OCI_TERRAFORM_TEST_BACKSTAGE_SECRET="$temporary_directory/backstage-secre
 export OCI_TERRAFORM_TEST_CLOUDFLARE_TOKEN="$temporary_directory/cloudflare-token"
 export OCI_TERRAFORM_TEST_CONFIG="$temporary_directory/oci-config"
 export OCI_TERRAFORM_TEST_FINGERPRINT="$temporary_directory/fingerprint"
+export OCI_TERRAFORM_TEST_GITHUB_RUNNER_TOKEN="$temporary_directory/github-runner-token"
 export OCI_TERRAFORM_TEST_PRIVATE_KEY="$temporary_directory/private-key"
 export OCI_TERRAFORM_TEST_REGISTRY_TOKEN="$temporary_directory/registry-token"
 export OCI_TERRAFORM_TEST_CLINIROVA_SECRET="$temporary_directory/clinirova-secret"
@@ -79,6 +81,7 @@ cat > "$temporary_directory/terraform-credentials.json" <<'EOF'
 EOF
 chmod 0600 "$temporary_directory/terraform-credentials.json"
 export TERRAFORM_CREDENTIAL_FILE="$temporary_directory/terraform-credentials.json"
+export GITHUB_RUNNER_TOKEN=github-runner-token-at-least-twenty
 export WORDPRESS_REGISTRY_TOKEN=registry-token-at-least-twenty
 export CLINIROVA_SECRET_BUNDLE='{"SMTP_PASSWORD":"synthetic-password"}'
 export TERRAFORM_DIRECTORY=root
@@ -107,6 +110,7 @@ grep -Fq 'user=ocid1.user.oc1..test' "$OCI_TERRAFORM_TEST_CONFIG"
 test "$(cat "$OCI_TERRAFORM_TEST_BACKSTAGE_SECRET")" = '{"backend_secret":"backend"}'
 test "$(cat "$OCI_TERRAFORM_TEST_CLOUDFLARE_TOKEN")" = 'cloudflare-token'
 test "$(cat "$OCI_TERRAFORM_TEST_FINGERPRINT")" = 'aa:bb:cc'
+test "$(cat "$OCI_TERRAFORM_TEST_GITHUB_RUNNER_TOKEN")" = 'github-runner-token-at-least-twenty'
 test "$(cat "$OCI_TERRAFORM_TEST_REGISTRY_TOKEN")" = 'registry-token-at-least-twenty'
 jq -e '.SMTP_PASSWORD == "synthetic-password"' "$OCI_TERRAFORM_TEST_CLINIROVA_SECRET" >/dev/null
 grep -Fq -- '-----BEGIN PRIVATE KEY-----' "$OCI_TERRAFORM_TEST_PRIVATE_KEY"

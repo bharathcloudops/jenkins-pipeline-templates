@@ -80,6 +80,7 @@ export TOOL_CONTAINER_HOME="$credential_directory"
 export TF_VAR_budget_alert_recipients
 export TF_VAR_cloudflare_account_id
 export TF_VAR_cloudflare_api_token
+export TF_VAR_github_runner_token
 export TF_VAR_jenkins_github_token
 export TF_VAR_oci_fingerprint
 export TF_VAR_oci_private_key
@@ -104,6 +105,7 @@ CLOUDFLARE_API_TOKEN=$(jq -r '.cloudflare_api_token' "$TERRAFORM_CREDENTIAL_FILE
 TF_VAR_budget_alert_recipients=$(jq -r '.budget_alert_recipients' "$TERRAFORM_CREDENTIAL_FILE")
 TF_VAR_cloudflare_account_id=$(jq -r '.cloudflare_account_id' "$TERRAFORM_CREDENTIAL_FILE")
 TF_VAR_cloudflare_api_token="$CLOUDFLARE_API_TOKEN"
+TF_VAR_github_runner_token=$(jq -r '.github_runner_token // empty' "$TERRAFORM_CREDENTIAL_FILE")
 TF_VAR_jenkins_github_token=$(jq -r '.github_token' "$TERRAFORM_CREDENTIAL_FILE")
 TF_VAR_monitoring_smtp_app_password=$(jq -r '.monitoring_smtp_app_password' "$TERRAFORM_CREDENTIAL_FILE")
 TF_VAR_oci_fingerprint=$(jq -r '.fingerprint' "$TERRAFORM_CREDENTIAL_FILE")
